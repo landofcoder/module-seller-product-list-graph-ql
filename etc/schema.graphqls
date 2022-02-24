@@ -1,0 +1,25 @@
+
+type Query {
+
+    sellerProductsList (
+        sellerId: Int! @doc(description: "Filter for sellerId.")
+        sourceType: SellerProductSourceType! = latest @doc(description: "Filter for Source type.")
+        search: String @doc(description: "Performs a full-text search using the specified key words.")
+        filter: ProductFilterInput @doc(description: "Identifies which product attributes to search for and return.")
+        pageSize: Int = 20 @doc(description: "Specifies the maximum number of results to return at once. This attribute is optional.")
+        currentPage: Int = 1 @doc(description: "Specifies which page of results to return. The default value is 1.")
+    ):Products @resolver(class: "\\Lofmp\\ProductListGraphQl\\Model\\Resolver\\SellerProducts") @doc(description: "The products query searches for products that match the criteria specified in the search and filter attributes")
+
+}
+
+enum SellerProductSourceType {
+    latest
+    newArrival
+    special
+    mostPopular
+    bestseller
+    topRated
+    random
+    featured
+    deals
+}
