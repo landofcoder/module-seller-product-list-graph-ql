@@ -14,12 +14,17 @@ use Magento\Framework\GraphQl\Query\Resolver\ContextInterface;
 use Magento\Framework\GraphQl\Query\Resolver\Value;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\Catalog\Model\Layer\Resolver;
 
 /**
  * Class SellerProducts
  */
 class SellerProducts implements ResolverInterface
 {
+    /**
+     * @var string
+     */
+    const SELLER_LAYER_SEARCH = 'seller';
 
     /**
      * @var ProductQueryInterface
@@ -76,8 +81,9 @@ class SellerProducts implements ResolverInterface
         }
 
         $totalPages = $args['pageSize'] ? ((int)ceil($searchResult->getTotalCount() / $args['pageSize'])) : 0;
+        $layerType = isset($args['search']) ? Resolver::CATALOG_LAYER_SEARCH : Resolver::CATALOG_LAYER_CATEGORY;
 
-        return [
+        $data = [
             'total_count' => $searchResult->getTotalCount(),
             'items' => $searchResult->getProductsSearchResult(),
             'page_info' => [
@@ -85,6 +91,15 @@ class SellerProducts implements ResolverInterface
                 'current_page' => $args['currentPage'],
                 'total_pages' => $totalPages
             ],
+            'search_result' => $searchResult,
+            'layer_type' => $layerType,
+            'seller_id' => $args['sellerId']
         ];
+
+        if (isset($args['filter']['category_id'])) {
+            $data['categories'] = $args['filter']['category_id']['eq'] ?? $args['filter']['category_id']['in'];
+            $data['categories'] = is_array($data['categories']) ? $data['categories'] : [$data['categories']];
+        }
+        return $data;
     }
 }
