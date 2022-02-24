@@ -37,6 +37,9 @@ magento 2 product list graphql extension
  - apply database updates by running `php bin/magento setup:upgrade`\*
  - Flush the cache by running `php bin/magento cache:flush`
 
+## TODO
+- Support full-text search
+
 ## Queries
 
 Get seller products list:
@@ -75,7 +78,6 @@ fragment ProductBasicInfo on ProductInterface {
   short_description {
     html
   }
-  product_brand
   price_range {
     maximum_price {
       ...ProductPriceFragment
@@ -106,7 +108,7 @@ fragment ProductBasicInfo on ProductInterface {
         pageSize: Int = 20
         currentPage: Int = 1
     ) {
-        item {
+        items {
             ...ProductBasicInfo
         }
         page_info {
@@ -137,3 +139,52 @@ enum SellerProductSourceType {
 
 - ProductFilterInput: is deprecated, use @ProductAttributeFilterInput instead. ProductFilterInput defines the filters to be used in the search. A filter contains at least one attribute, a comparison operator, and the value that is being searched for.
 view in module ``magento/module-catalog-graph-ql``
+
+Example:
+
+query featured products of seller url key "seller-a"
+
+```
+{
+    sellerProductsList(
+        sellerUrl: "seller-a"
+        sourceType: featured
+        search: ""
+        filter: {}
+        pageSize: 5
+        currentPage: 1
+    ) {
+        items {
+            id
+            name
+            url_key
+            rating_summary
+            sku
+            image {
+              url
+              label
+            }
+            description {
+              html
+            }
+            short_description {
+              html
+            }
+            price {
+                regularPrice {
+                    amount {
+                        currency
+                    }
+                }
+            }
+        }
+        page_info {
+          page_size
+          current_page
+          total_pages
+        }
+        total_count
+    }
+}
+
+```

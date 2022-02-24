@@ -112,6 +112,7 @@ class ProductSearch
         }
         $config = [];
         $collection = null;
+
         switch ($sourceKey) {
             case 'latest':
                 $collection = $product->getLatestProducts($sellerId, $config);
@@ -145,26 +146,30 @@ class ProductSearch
         }
         $items = [];
         $size = 0;
+
         if ($collection) {
             //Create a copy of search criteria without filters to preserve the results from search
             $searchCriteriaForCollection = $this->searchCriteriaBuilder->build($searchCriteria);
+
             //Apply CatalogSearch results from search and join table
-            $this->getSearchResultsApplier(
-                $searchResult,
-                $collection,
-                $this->getSortOrderArray($searchCriteriaForCollection)
-            )->apply();
+            // $this->getSearchResultsApplier(
+            //     $searchResult,
+            //     $collection,
+            //     $this->getSortOrderArray($searchCriteriaForCollection)
+            // )->apply();
 
             $this->collectionPreProcessor->process($collection, $searchCriteriaForCollection, $attributes, $context);
             $collection->load();
+
             $this->collectionPostProcessor->process($collection, $attributes);
             $items = $collection->getItems();
-            $size = count($collection);
+            $size = $collection->getSize();
         }
         $searchResults = $this->searchResultsFactory->create();
         $searchResults->setSearchCriteria($searchCriteriaForCollection);
         $searchResults->setItems($items);
         $searchResults->setTotalCount($size);
+
         return $searchResults;
     }
 
@@ -180,7 +185,8 @@ class ProductSearch
         SearchResultInterface $searchResult,
         Collection $collection,
         array $orders
-    ): SearchResultApplierInterface {
+    ): SearchResultApplierInterface
+    {
         return $this->searchResultApplierFactory->create(
             [
                 'collection' => $collection,
