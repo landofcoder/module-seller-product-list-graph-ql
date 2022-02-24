@@ -11,7 +11,7 @@ use Magento\Catalog\Api\Data\ProductSearchResultsInterfaceFactory;
 use Magento\Framework\Api\SearchResultsInterface;
 use Magento\CatalogGraphQl\Model\Resolver\Products\DataProvider\Product\CollectionProcessorInterface;
 use Magento\GraphQl\Model\Query\ContextInterface;
-use Lofmp\Productlist\Model\ProductFactory as ProductListProductFactory;
+use Lofmp\Productlist\Api\ProductRepositoryInterface;
 
 /**
  * Product field data provider, used for GraphQL resolver processing.
@@ -44,12 +44,17 @@ class Product
     private $visibility;
 
     /**
+     * @var ProductRepositoryInterface
+     */
+    private $repository;
+
+    /**
      * @param CollectionFactory $collectionFactory
      * @param ProductSearchResultsInterfaceFactory $searchResultsFactory
      * @param Visibility $visibility
      * @param CollectionProcessorInterface $collectionProcessor
      * @param CollectionPostProcessor $collectionPostProcessor
-     * @param ProductListProductFactory $productFactory
+     * @param ProductRepositoryInterface $repository
      */
     public function __construct(
         CollectionFactory $collectionFactory,
@@ -57,14 +62,14 @@ class Product
         Visibility $visibility,
         CollectionProcessorInterface $collectionProcessor,
         CollectionPostProcessor $collectionPostProcessor,
-        ProductListProductFactory $productFactory
+        ProductRepositoryInterface $repository
     ) {
         $this->collectionFactory = $collectionFactory;
         $this->searchResultsFactory = $searchResultsFactory;
         $this->visibility = $visibility;
         $this->collectionPreProcessor = $collectionProcessor;
         $this->collectionPostProcessor = $collectionPostProcessor;
-        $this->productFactory = $productFactory;
+        $this->repository = $repository;
     }
 
     /**
@@ -75,8 +80,8 @@ class Product
      * @param bool $isSearch
      * @param bool $isChildSearch
      * @param ContextInterface|null $context
-     * @param string $source_key
-     * @param int $sellerId
+     * @param string $sourceKey
+     * @param string $sellerUrl
      * @return SearchResultsInterface
      */
     public function getList(
@@ -85,64 +90,26 @@ class Product
         bool $isSearch = false,
         bool $isChildSearch = false,
         ContextInterface $context = null,
-        $sourceKey = 'latest',
-        $sellerId = 0
-    ): SearchResultsInterface {
-        $product = $this->productFactory->create();
-        $config = [];
-        $collection = null;
+        string $sourceKey = 'latest',
+        string $sellerUrl = ''
+    ): SearchResultsInterface
+    {
         switch ($sourceKey) {
-            case 'latest':
-                $collection = $product->getLatestProducts($sellerId, $config);
-                break;
             case 'newArrival':
-                $collection = $product->getNewarrivalProducts($sellerId, $config);
-                break;
-            case 'special':
-                $collection = $product->getSpecialProducts($sellerId, $config);
+                $sellerUrl = 'new_arrival';
                 break;
             case 'mostPopular':
-                $collection = $product->getMostViewedProducts($sellerId, $config);
+                $sellerUrl = 'most_popular';
                 break;
             case 'bestseller':
-                $collection = $product->getBestsellerProducts($sellerId, $config);
+                $sellerUrl = 'best_seller';
                 break;
             case 'topRated':
-                $collection = $product->getTopratedProducts($sellerId, $config);
-                break;
-            case 'random':
-                $collection = $product->getRandomProducts($sellerId, $config);
-                break;
-            case 'featured':
-                $collection = $product->getFeaturedProducts($sellerId, $config);
-                break;
-            case 'deals':
-                $collection = $product->getDealsProducts($sellerId, $config);
+                $sellerUrl = 'top_rated';
                 break;
             default:
             break;
         }
-        $items = [];
-        $size = 0;
-        if ($collection) {
-            $this->collectionPreProcessor->process($collection, $searchCriteria, $attributes, $context);
-
-            if (!$isChildSearch) {
-                $visibilityIds = $isSearch
-                    ? $this->visibility->getVisibleInSearchIds()
-                    : $this->visibility->getVisibleInCatalogIds();
-                $collection->setVisibility($visibilityIds);
-            }
-
-            $collection->load();
-            $this->collectionPostProcessor->process($collection, $attributes);
-            $items = $collection->getItems();
-            $size = $collection->getSize();
-        }
-        $searchResult = $this->searchResultsFactory->create();
-        $searchResult->setSearchCriteria($searchCriteria);
-        $searchResult->setItems($items);
-        $searchResult->setTotalCount($size);
-        return $searchResult;
+        return $this->repository->getProductsBySource($sourceKey, $sellerUrl, $searchCriteria);
     }
 }

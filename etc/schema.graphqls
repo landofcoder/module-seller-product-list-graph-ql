@@ -2,7 +2,7 @@
 type Query {
 
     sellerProductsList (
-        sellerId: Int! @doc(description: "Filter for sellerId.")
+        sellerUrl: String! @doc(description: "Filter for sellerUrl.")
         sourceType: SellerProductSourceType! = latest @doc(description: "Filter for Source type.")
         search: String @doc(description: "Performs a full-text search using the specified key words.")
         filter: ProductFilterInput @doc(description: "Identifies which product attributes to search for and return.")

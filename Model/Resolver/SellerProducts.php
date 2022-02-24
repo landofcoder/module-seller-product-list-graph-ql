@@ -65,8 +65,8 @@ class SellerProducts implements ResolverInterface
         if ($args['pageSize'] < 1) {
             throw new GraphQlInputException(__('pageSize value must be greater than 0.'));
         }
-        if ($args['sellerId'] < 1) {
-            throw new GraphQlInputException(__('sellerId value must be greater than 0.'));
+        if (empty($args['sellerUrl'])) {
+            throw new GraphQlInputException(__('sellerUrl value is required for query.'));
         }
         $args['type'] = $args["sourceType"];
         $searchResult = $this->searchQuery->getResult($args, $info, $context);
@@ -93,7 +93,7 @@ class SellerProducts implements ResolverInterface
             ],
             'search_result' => $searchResult,
             'layer_type' => $layerType,
-            'seller_id' => $args['sellerId']
+            'seller_url' => $args['sellerUrl']
         ];
 
         if (isset($args['filter']['category_id'])) {

@@ -41,7 +41,7 @@ magento 2 product list graphql extension
 
 Get seller products list:
 
-- Define Fragments:
+- Define Fragments before:
 
 ```
 fragment ProductPriceFragment on ProductPrice {
@@ -99,7 +99,7 @@ fragment ProductBasicInfo on ProductInterface {
 ```
 {
     sellerProductsList(
-        sellerId: Int!
+        sellerUrl: String!
         sourceType: SellerProductSourceType = latest
         search: String
         filter: ProductFilterInput

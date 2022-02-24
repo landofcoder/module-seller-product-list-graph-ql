@@ -95,7 +95,7 @@ class Filter implements ProductQueryInterface
                 false,
                 $context,
                 $args['type'],
-                (int)$args['sellerId']
+                $args['sellerUrl']
             );
 
         } catch (InputException $e) {

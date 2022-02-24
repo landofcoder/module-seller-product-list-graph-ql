@@ -15,6 +15,7 @@ use Magento\Framework\Api\Search\SearchResultInterface;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Api\SearchResultsInterface;
 use Magento\GraphQl\Model\Query\ContextInterface;
+use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Lofmp\Productlist\Model\ProductFactory as ProductlistProductFactory;
 
 /**
@@ -91,9 +92,8 @@ class ProductSearch
      * @param SearchResultInterface $searchResult
      * @param array $attributes
      * @param ContextInterface|null $context
-     * @param Int|null $sellerId
      * @param string $sourceKey
-     * @param int $sellerId
+     * @param string $sellerUrl
      * @return SearchResultsInterface
      */
     public function getList(
@@ -101,10 +101,15 @@ class ProductSearch
         SearchResultInterface $searchResult,
         array $attributes = [],
         ContextInterface $context = null,
-        $sourceKey = 'latest',
-        $sellerId = 0
-    ): SearchResultsInterface {
+        string $sourceKey = 'latest',
+        string $sellerUrl = ''
+    ): SearchResultsInterface
+    {
         $product = $this->productFactory->create();
+        $sellerId = $product->getSellerIdByUrl($sellerUrl);
+        if (!$sellerId) {
+            throw new GraphQlInputException(__('not found any seller with url "%1".', $sellerUrl));
+        }
         $config = [];
         $collection = null;
         switch ($sourceKey) {

@@ -111,7 +111,7 @@ class Search implements ProductQueryInterface
             $queryFields,
             $context,
             $args['type'],
-            (int)$args['sellerId']
+            $args['sellerUrl']
         );
 
         $totalPages = $realPageSize ? ((int)ceil($searchResults->getTotalCount() / $realPageSize)) : 0;
