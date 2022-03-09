@@ -110,6 +110,6 @@ class Product
             default:
             break;
         }
-        return $this->repository->getProductsBySource($sourceKey, $sellerUrl, $searchCriteria);
+        return $this->repository->getProductsBySource($sellerUrl, $searchCriteria, $sourceKey);
     }
 }
